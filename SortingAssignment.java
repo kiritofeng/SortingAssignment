@@ -111,7 +111,7 @@ public class SortingAssignment implements Runnable { //Hack for getting more sta
             }
             P2=Q.poll();
             //P1 and P2 are two adjacent intervals
-            
+            for(int i=P1.first,j=P2.;
         }
     }
 
