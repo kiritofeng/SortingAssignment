@@ -4,7 +4,7 @@ Goal: To compare quicksort and timsort, written in Java
 
 ## Quicksort
 
-A commonly used sort, which has average time complexity O(N log N), and worst case O(N log N). The implementation used here picks the right-most element as the pivot, and then recursively calls quicksort on the two partitions.
+A commonly used sort, which has average time complexity O(N log N), and worst case O(N^2). The implementation used here picks the right-most element as the pivot, and then recursively calls quicksort on the two partitions.
 
 ## Timsort
 
