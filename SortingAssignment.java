@@ -63,16 +63,18 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         //Handle resizing
+        /*
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
                 new Thread() {
                     public void run() {
-                        D.setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
+                        D.setSize(new Dimension(getWidth(),9*getHeight()/10));
                     }
                 }.start();
             }
         });
+        */
     }
 
     private void initBars() {
@@ -292,7 +294,7 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         }
 
         public void paintComponent(Graphics G) {
-            setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
+            //setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
             double d=0.0;
             for(int i=0,j=0;i<rect.length;i++) {
                 int h=(rect[i].val+1)*getHeight()/barCnt,w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
