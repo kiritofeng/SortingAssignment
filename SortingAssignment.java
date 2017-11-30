@@ -12,6 +12,7 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     private JComponent cntrls[];
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("sun.java2d.opengl", "true");
         new Thread(null, new SortingAssignment(), "SortingAssignment", 1<<26).start(); //Increase the stack
     }
 
@@ -174,10 +175,6 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                         synchronized (rect) {
                             rect[i].setComparing(false);
                             pivot.setComparing(false);
-                        }
-                        repaint();
-                        Thread.sleep(DELAY);
-                        synchronized (rect) {
                             if (rect[i].compareTo(pivot) <= 0) {
                                 Bar tmp = rect[++prt];
                                 rect[prt] = rect[i];
@@ -193,8 +190,8 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                     }
                     repaint();
                     //Recursively quicksort
-                    S.push(new Pair(lft, prt - 1));
                     S.push(new Pair(prt + 1, rht));
+                    S.push(new Pair(lft, prt - 1));
                 }
             }
             repaint();
@@ -220,10 +217,6 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                     synchronized (rect) {
                         prevE.setComparing(false);
                         rect[i].setComparing(false);
-                    }
-                    repaint();
-                    Thread.sleep(DELAY);
-                    synchronized (rect) {
                         if (prevE.compareTo(rect[i]) <= 0) {
                             prevE = rect[i];
                         } else {
@@ -265,10 +258,6 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                         synchronized (rect) {
                             rect[i].setComparing(false);
                             rect[j].setComparing(false);
-                        }
-                        repaint();
-                        Thread.sleep(DELAY);
-                        synchronized (rect) {
                             if (rect[i].compareTo(rect[j]) <= 0)
                                 tmp[k++] = rect[i++];
                             else
@@ -284,6 +273,7 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                 repaint();
                 Q.offer(new Pair(P1.first, P2.second));
             }
+            repaint();
         }
     }
 
