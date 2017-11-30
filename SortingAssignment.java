@@ -150,39 +150,52 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
             }
         }
 
-        private synchronized void quicksort() throws InterruptedException {
-            synchronized(rect) {
-                quicksort(0, rect.length - 1);
-            }
-        }
-
-        private void quicksort(int lft,int rht) throws InterruptedException {
-            if (lft < rht) {
-                int prt = lft - 1; //Get partition
-                Bar pivot = rect[rht]; //Get pivot value
-                for (int i = lft; i < rht; i++) {
-                    rect[i].setComparing(true);
-                    pivot.setComparing(true);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    rect[i].setComparing(false);
-                    pivot.setComparing(false);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    if (rect[i].compareTo(pivot) <= 0) {
-                        Bar tmp = rect[++prt];
-                        rect[prt] = rect[i];
-                        rect[i] = tmp;
+        private void quicksort() throws InterruptedException {
+            Stack<Pair> S = new Stack();
+            //Use stacks to simulate recusion
+            //Since syncronized blocks are evil
+            S.push(new Pair(0,rect.length-1));
+            while(!S.empty()) {
+                int lft=S.peek().first,rht=S.peek().second;
+                S.pop();
+                if (lft < rht) {
+                    int prt = lft - 1; //Get partition
+                    Bar pivot = null; //Declare it
+                    synchronized (rect) {
+                        pivot = rect[rht]; //Get pivot value
                     }
+                    for (int i = lft; i < rht; i++) {
+                        synchronized (rect) {
+                            rect[i].setComparing(true);
+                            pivot.setComparing(true);
+                        }
+                        repaint();
+                        Thread.sleep(DELAY);
+                        synchronized (rect) {
+                            rect[i].setComparing(false);
+                            pivot.setComparing(false);
+                        }
+                        repaint();
+                        Thread.sleep(DELAY);
+                        synchronized (rect) {
+                            if (rect[i].compareTo(pivot) <= 0) {
+                                Bar tmp = rect[++prt];
+                                rect[prt] = rect[i];
+                                rect[i] = tmp;
+                            }
+                        }
+                    }
+                    synchronized (rect) {
+                        //Move parition into place
+                        Bar tmp = rect[++prt];
+                        rect[prt] = rect[rht];
+                        rect[rht] = tmp;
+                    }
+                    repaint();
+                    //Recursively quicksort
+                    S.push(new Pair(lft, prt - 1));
+                    S.push(new Pair(prt + 1, rht));
                 }
-                //Move parition into place
-                Bar tmp = rect[++prt];
-                rect[prt] = rect[rht];
-                rect[rht] = tmp;
-                repaint();
-                //Recursively quicksort
-                quicksort(lft, prt - 1);
-                quicksort(prt + 1, rht);
             }
             repaint();
         }
@@ -192,19 +205,25 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
             int prevInd = 0;
             Bar prevE = null;
             for (int i = 0; i < rect.length; i++) {
-                synchronized (rect) {
-                    if (prevE == null) {
+                if (prevE == null) {
+                    synchronized (rect) {
                         prevE = rect[i];
                         prevInd = i;
-                    } else {
+                    }
+                } else {
+                    synchronized (rect) {
                         prevE.setComparing(true);
                         rect[i].setComparing(true);
-                        repaint();
-                        Thread.sleep(DELAY);
+                    }
+                    repaint();
+                    Thread.sleep(DELAY);
+                    synchronized (rect) {
                         prevE.setComparing(false);
                         rect[i].setComparing(false);
-                        repaint();
-                        Thread.sleep(DELAY);
+                    }
+                    repaint();
+                    Thread.sleep(DELAY);
+                    synchronized (rect) {
                         if (prevE.compareTo(rect[i]) <= 0) {
                             prevE = rect[i];
                         } else {
@@ -215,43 +234,55 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                     }
                 }
             }
-            Q.offer(new Pair(prevInd, rect.length - 1));
+            synchronized (rect) {
+                Q.offer(new Pair(prevInd, rect.length - 1));
+            }
             while (Q.size() > 1) {
-                synchronized (rect) {
-                    Pair P1 = Q.poll();
-                    while (P1.second > Q.peek().first) {
-                        Q.offer(P1);
-                        P1 = Q.poll();
-                    }
-                    Pair P2 = Q.poll();
-                    //P1 and P2 are two adjacent intervals
-                    Bar[] tmp = new Bar[P2.second - P1.first + 1];
-                    for (int i = P1.first, j = P2.first, k = 0; i <= P1.second || j <= P2.second; ) {
-                        if (i > P1.second)
+                Pair P1 = Q.poll();
+                while (P1.second > Q.peek().first) {
+                    Q.offer(P1);
+                    P1 = Q.poll();
+                }
+                Pair P2 = Q.poll();
+                //P1 and P2 are two adjacent intervals
+                Bar[] tmp = new Bar[P2.second - P1.first + 1];
+                for (int i = P1.first, j = P2.first, k = 0; i <= P1.second || j <= P2.second; ) {
+                    if (i > P1.second)
+                        synchronized (rect) {
                             tmp[k++] = rect[j++];
-                        else if (j > P2.second)
+                        }
+                    else if (j > P2.second)
+                        synchronized (rect) {
                             tmp[k++] = rect[i++];
-                        else {
+                        }
+                    else {
+                        synchronized (rect) {
                             rect[i].setComparing(true);
                             rect[j].setComparing(true);
-                            repaint();
-                            Thread.sleep(DELAY);
+                        }
+                        repaint();
+                        Thread.sleep(DELAY);
+                        synchronized (rect) {
                             rect[i].setComparing(false);
                             rect[j].setComparing(false);
-                            repaint();
-                            Thread.sleep(DELAY);
+                        }
+                        repaint();
+                        Thread.sleep(DELAY);
+                        synchronized (rect) {
                             if (rect[i].compareTo(rect[j]) <= 0)
                                 tmp[k++] = rect[i++];
                             else
                                 tmp[k++] = rect[j++];
                         }
                     }
-                    //Copy the array over
+                }
+                //Copy the array over
+                synchronized (rect) {
                     for (int i = P1.first, j = 0; j < tmp.length; )
                         rect[i++] = tmp[j++];
-                    repaint();
-                    Q.offer(new Pair(P1.first, P2.second));
                 }
+                repaint();
+                Q.offer(new Pair(P1.first, P2.second));
             }
         }
     }
