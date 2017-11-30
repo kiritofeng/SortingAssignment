@@ -157,44 +157,42 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         }
 
         private void quicksort(int lft,int rht) throws InterruptedException {
-            synchronized(rect) {
-                if (lft < rht) {
-                    int prt = lft - 1; //Get partition
-                    Bar pivot = rect[rht]; //Get pivot value
-                    for (int i = lft; i < rht; i++) {
-                        rect[i].setComparing(true);
-                        pivot.setComparing(true);
-                        repaint();
-                        Thread.sleep(DELAY);
-                        rect[i].setComparing(false);
-                        pivot.setComparing(false);
-                        repaint();
-                        Thread.sleep(DELAY);
-                        if (rect[i].compareTo(pivot) <= 0) {
-                            Bar tmp = rect[++prt];
-                            rect[prt] = rect[i];
-                            rect[i] = tmp;
-                        }
-                    }
-                    //Move parition into place
-                    Bar tmp = rect[++prt];
-                    rect[prt] = rect[rht];
-                    rect[rht] = tmp;
+            if (lft < rht) {
+                int prt = lft - 1; //Get partition
+                Bar pivot = rect[rht]; //Get pivot value
+                for (int i = lft; i < rht; i++) {
+                    rect[i].setComparing(true);
+                    pivot.setComparing(true);
                     repaint();
-                    //Recursively quicksort
-                    quicksort(lft, prt - 1);
-                    quicksort(prt + 1, rht);
+                    Thread.sleep(DELAY);
+                    rect[i].setComparing(false);
+                    pivot.setComparing(false);
+                    repaint();
+                    Thread.sleep(DELAY);
+                    if (rect[i].compareTo(pivot) <= 0) {
+                        Bar tmp = rect[++prt];
+                        rect[prt] = rect[i];
+                        rect[i] = tmp;
+                    }
                 }
+                //Move parition into place
+                Bar tmp = rect[++prt];
+                rect[prt] = rect[rht];
+                rect[rht] = tmp;
                 repaint();
+                //Recursively quicksort
+                quicksort(lft, prt - 1);
+                quicksort(prt + 1, rht);
             }
+            repaint();
         }
 
         private void timsort() throws InterruptedException {
-            synchronized (rect) {
-                Queue<Pair> Q = new LinkedList<>();
-                int prevInd = 0;
-                Bar prevE = null;
-                for (int i = 0; i < rect.length; i++) {
+            Queue<Pair> Q = new LinkedList<>();
+            int prevInd = 0;
+            Bar prevE = null;
+            for (int i = 0; i < rect.length; i++) {
+                synchronized (rect) {
                     if (prevE == null) {
                         prevE = rect[i];
                         prevInd = i;
@@ -215,10 +213,11 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                             prevE = rect[i];
                         }
                     }
-
                 }
-                Q.offer(new Pair(prevInd, rect.length - 1));
-                while (Q.size() > 1) {
+            }
+            Q.offer(new Pair(prevInd, rect.length - 1));
+            while (Q.size() > 1) {
+                synchronized (rect) {
                     Pair P1 = Q.poll();
                     while (P1.second > Q.peek().first) {
                         Q.offer(P1);
