@@ -3,7 +3,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
 
-public class SortingAssignment extends JFrame implements Runnable { //Hack for getting more stack size
+public class SortingAssignment extends JFrame {
 
     private Bar[]rect;
     private DrawArea D;
@@ -11,12 +11,8 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     private static int DELAY=100;
     private JComponent cntrls[];
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         System.setProperty("sun.java2d.opengl", "true"); // Make the graphics appear smoothly on linux
-        new Thread(null, new SortingAssignment(), "SortingAssignment", 1<<26).start(); //Increase the stack
-    }
-
-    public void run() {
         new SortingAssignment().setVisible(true);
     }
 
@@ -391,4 +387,3 @@ class Pair {
         second=s;
     }
 }
-
