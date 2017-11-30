@@ -9,6 +9,7 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     private DrawArea D;
     private int barCnt;
     private static int DELAY=100;
+    private JComponent cntrls[];
 
     public static void main(String[] args) throws Exception {
         new Thread(null, new SortingAssignment(), "SortingAssignment", 1<<26).start(); //Increase the stack
@@ -21,21 +22,26 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     public SortingAssignment() {
         barCnt=20;
         initBars();
-        D=new DrawArea(1000,400);
+        setMinimumSize(new Dimension(800,500));
+        setPreferredSize(new Dimension(800,500));
+        D=new DrawArea(getWidth(),getHeight()-100);
+        cntrls = new JComponent[5];
         BtnListener btnl = new BtnListener();
-        JButton shuffle = new JButton("Shuffle");
-        shuffle.addActionListener(btnl);
-        JButton qsort = new JButton("Quicksort");
-        qsort.addActionListener(btnl);
-        JButton tsort = new JButton("Timsort");
-        tsort.addActionListener(btnl);
-        JComboBox<Integer>num = new JComboBox<>(new Integer[]{20,50,100,1000});
-        num.addActionListener(new ActionListener() {
+        cntrls[0] = new JButton("Shuffle");
+        ((JButton)cntrls[0]).addActionListener(btnl);
+        cntrls[1] = new JButton("Worst Case");
+        ((JButton)cntrls[1]).addActionListener(btnl);
+        cntrls[2] = new JButton("Quicksort");
+        ((JButton)cntrls[2]).addActionListener(btnl);
+        cntrls[3] = new JButton("Timsort");
+        ((JButton)cntrls[3]).addActionListener(btnl);
+        cntrls[4] = new JComboBox<Integer>(new Integer[]{20,50,100,1000});
+        ((JComboBox<Integer>)cntrls[4]).addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 new Thread() {
                     public void run() {
-                        barCnt = (Integer) num.getSelectedItem();
+                        barCnt = (Integer)((JComboBox<Integer>)cntrls[4]).getSelectedItem();
                         DELAY = 2000/barCnt;
                         initBars();
                     }
@@ -47,57 +53,102 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         JPanel btns = new JPanel();
         content.setLayout(new BorderLayout());
         btns.setLayout(new FlowLayout());
-        btns.add(shuffle);
-        btns.add(qsort);
-        btns.add(tsort);
-        btns.add(num);
+        for(JComponent jc:cntrls)
+            btns.add(jc);
         content.add(btns,"North");
         content.add(D,"South");
         setContentPane(content);
         pack();
         setTitle("Quicksort Vs Timsort - Visual Comparision");
-        setSize(1000,500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        //Handle resizing
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent componentEvent) {
+                D.setHeight(getHeight()-100);
+                D.setWidth(getWidth());
+                new Thread() {
+                    public void run() {
+                        setBarSize();
+                    }
+                }.start();
+            }
+        });
     }
 
     private void initBars() {
         rect=new Bar[barCnt];
+        for(int i=0;i<barCnt;i++)
+            rect[i]=new Bar(i);
+        setBarSize();
+    }
+
+    private void setBarSize() {
+        //The problem is that you can't render fractions of a pixel
+        //The solution is to not render some bars
+        double d=0.0;
         for(int i=0;i<barCnt;i++) {
-            rect[i]=new Bar((i+1)*400/barCnt,1000/barCnt,i);
+            rect[i].setHeight((rect[i].val+1)*(getHeight()-100)/barCnt);
+            rect[i].setWidth((int)(Math.round((rect[i].val+1.0)*getWidth()/barCnt)-Math.round(d)));
+            d+=1.0*getWidth()/barCnt;
         }
         repaint();
     }
 
     private class BtnListener implements ActionListener {
+
+        //To reduce redudant code
+        private abstract class BarThread extends Thread {
+            public void run() {
+                //Reenable all components
+                for(Component c:cntrls)
+                    c.setEnabled(true);
+            }
+        }
+
         public void actionPerformed(ActionEvent e) {
+            //Disable all components
+            for(Component c:cntrls)
+                c.setEnabled(false);
             switch(e.getActionCommand()) {
                 case "Shuffle":
-                    new Thread() {
+                    new BarThread() {
                         public void run() {
                             shuffle();
+                            super.run();
+                        }
+                    }.start();
+                    break;
+                case "Worst Case":
+                    new BarThread() {
+                        public void run() {
+                            worstcase();
+                            super.run();
                         }
                     }.start();
                     break;
                 case "Quicksort":
-                    new Thread() {
+                    new BarThread() {
                         public void run() {
                             try {
                                 quicksort();
                             } catch (InterruptedException IE) {
                                 //Do Nothing
                             }
+                            super.run();
                         }
                     }.start();
                     break;
                 case "Timsort":
-                    new Thread() {
+                    new BarThread() {
                         public void run() {
                             try {
                                 timsort();
                             } catch(InterruptedException IE) {
                                 //Do nothing
                             }
+                            super.run();
                         }
                     }.start();
             }
@@ -114,6 +165,15 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
             repaint();
         }
 
+        private void worstcase() {
+            initBars();
+            for(int i=0;2*i<rect.length;i++) {
+                Bar tmp=rect[i];
+                rect[i]=rect[rect.length-1-i];
+                rect[rect.length-1-i]=tmp;
+            }
+        }
+
         private void quicksort() throws InterruptedException {
             quicksort(0,rect.length-1);
         }
@@ -127,16 +187,15 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                     pivot.setComparing(true);
                     repaint();
                     Thread.sleep(DELAY);
+                    rect[i].setComparing(false);
+                    pivot.setComparing(false);
+                    repaint();
+                    Thread.sleep(DELAY);
                     if(rect[i].compareTo(pivot)<=0) {
                         Bar tmp=rect[++prt];
                         rect[prt]=rect[i];
                         rect[i]=tmp;
-                        rect[prt].setComparing(false);
-                    } else
-                        rect[i].setComparing(false);
-                    pivot.setComparing(false);
-                    repaint();
-                    Thread.sleep(DELAY);
+                    }
                 }
                 //Move parition into place
                 Bar tmp=rect[++prt];
@@ -216,8 +275,15 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     }
 
     private class Bar implements Comparable<Bar> {
-        protected final int height,width,val; //height and with of rectangle
+        protected int height,width,val; //height and with of rectangle
         private boolean comparing;
+
+        public Bar(int v) {
+            height=width=0;
+            comparing=false;
+            val=v;
+        }
+
         public Bar(int h, int w, int v) {
             comparing=false;
             height=h;
@@ -240,6 +306,14 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         public int compareTo(Bar b) {
             return val-b.val;
         }
+
+        public void setHeight(int height) {
+            this.height=height;
+        }
+
+        public void setWidth(int width) {
+            this.width=width;
+        }
     }
 
     private class DrawArea extends JPanel {
@@ -256,6 +330,16 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
                 j+=rect[i].width;
             }
         }
+
+        public void setHeight(int height) {
+            this.height = height;
+            setSize(width,height);
+        }
+
+        public void setWidth(int width) {
+            this.width = width;
+            setSize(width,height);
+        }
     }
 }
 
@@ -267,4 +351,3 @@ class Pair {
         second=s;
     }
 }
-
