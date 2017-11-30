@@ -56,25 +56,13 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         for(JComponent jc:cntrls)
             btns.add(jc);
         content.add(btns,"North");
-        content.add(D,"South");
+        content.add(D,"Center");
         setContentPane(content);
         pack();
         setTitle("Quicksort Vs Timsort - Visual Comparision");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         //Handle resizing
-        /*
-        addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent componentEvent) {
-                new Thread() {
-                    public void run() {
-                        D.setSize(new Dimension(getWidth(),9*getHeight()/10));
-                    }
-                }.start();
-            }
-        });
-        */
     }
 
     private void initBars() {
@@ -162,102 +150,109 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
             }
         }
 
-        private void quicksort() throws InterruptedException {
-            quicksort(0,rect.length-1);
+        private synchronized void quicksort() throws InterruptedException {
+            synchronized(rect) {
+                quicksort(0, rect.length - 1);
+            }
         }
 
         private void quicksort(int lft,int rht) throws InterruptedException {
-            if(lft<rht) {
-                int prt=lft-1; //Get partition
-                Bar pivot=rect[rht]; //Get pivot value
-                for(int i=lft;i<rht;i++) {
-                    rect[i].setComparing(true);
-                    pivot.setComparing(true);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    rect[i].setComparing(false);
-                    pivot.setComparing(false);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    if(rect[i].compareTo(pivot)<=0) {
-                        Bar tmp=rect[++prt];
-                        rect[prt]=rect[i];
-                        rect[i]=tmp;
-                    }
-                }
-                //Move parition into place
-                Bar tmp=rect[++prt];
-                rect[prt]=rect[rht];
-                rect[rht]=tmp;
-                repaint();
-                //Recursively quicksort
-                quicksort(lft,prt-1);
-                quicksort(prt+1,rht);
-            }
-            repaint();
-        }
-
-        private void timsort() throws InterruptedException {
-            Queue<Pair>Q=new LinkedList<>();
-            int prevInd=0;
-            Bar prevE=null;
-            for(int i=0;i<rect.length;i++) {
-                if(prevE==null) {
-                    prevE=rect[i];
-                    prevInd=i;
-                } else {
-                    prevE.setComparing(true);
-                    rect[i].setComparing(true);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    prevE.setComparing(false);
-                    rect[i].setComparing(false);
-                    repaint();
-                    Thread.sleep(DELAY);
-                    if(prevE.compareTo(rect[i])<=0) {
-                        prevE=rect[i];
-                    } else {
-                        Q.offer(new Pair(prevInd,i-1));
-                        prevInd=i;
-                        prevE=rect[i];
-                    }
-                }
-            }
-            Q.offer(new Pair(prevInd,rect.length-1));
-            while(Q.size()>1) {
-                Pair P1=Q.poll();
-                while(P1.second>Q.peek().first) {
-                    Q.offer(P1);
-                    P1=Q.poll();
-                }
-                Pair P2=Q.poll();
-                //P1 and P2 are two adjacent intervals
-                Bar[]tmp=new Bar[P2.second-P1.first+1];
-                for(int i=P1.first,j=P2.first,k=0;i<=P1.second||j<=P2.second;) {
-                    if(i>P1.second)
-                        tmp[k++]=rect[j++];
-                    else if(j>P2.second)
-                        tmp[k++]=rect[i++];
-                    else {
+            synchronized(rect) {
+                if (lft < rht) {
+                    int prt = lft - 1; //Get partition
+                    Bar pivot = rect[rht]; //Get pivot value
+                    for (int i = lft; i < rht; i++) {
                         rect[i].setComparing(true);
-                        rect[j].setComparing(true);
+                        pivot.setComparing(true);
                         repaint();
                         Thread.sleep(DELAY);
                         rect[i].setComparing(false);
-                        rect[j].setComparing(false);
+                        pivot.setComparing(false);
                         repaint();
                         Thread.sleep(DELAY);
-                        if(rect[i].compareTo(rect[j])<=0)
-                            tmp[k++]=rect[i++];
-                        else
-                            tmp[k++]=rect[j++];
+                        if (rect[i].compareTo(pivot) <= 0) {
+                            Bar tmp = rect[++prt];
+                            rect[prt] = rect[i];
+                            rect[i] = tmp;
+                        }
                     }
+                    //Move parition into place
+                    Bar tmp = rect[++prt];
+                    rect[prt] = rect[rht];
+                    rect[rht] = tmp;
+                    repaint();
+                    //Recursively quicksort
+                    quicksort(lft, prt - 1);
+                    quicksort(prt + 1, rht);
                 }
-                //Copy the array over
-                for(int i=P1.first,j=0;j<tmp.length;)
-                    rect[i++]=tmp[j++];
                 repaint();
-                Q.offer(new Pair(P1.first,P2.second));
+            }
+        }
+
+        private void timsort() throws InterruptedException {
+            synchronized (rect) {
+                Queue<Pair> Q = new LinkedList<>();
+                int prevInd = 0;
+                Bar prevE = null;
+                for (int i = 0; i < rect.length; i++) {
+                    if (prevE == null) {
+                        prevE = rect[i];
+                        prevInd = i;
+                    } else {
+                        prevE.setComparing(true);
+                        rect[i].setComparing(true);
+                        repaint();
+                        Thread.sleep(DELAY);
+                        prevE.setComparing(false);
+                        rect[i].setComparing(false);
+                        repaint();
+                        Thread.sleep(DELAY);
+                        if (prevE.compareTo(rect[i]) <= 0) {
+                            prevE = rect[i];
+                        } else {
+                            Q.offer(new Pair(prevInd, i - 1));
+                            prevInd = i;
+                            prevE = rect[i];
+                        }
+                    }
+
+                }
+                Q.offer(new Pair(prevInd, rect.length - 1));
+                while (Q.size() > 1) {
+                    Pair P1 = Q.poll();
+                    while (P1.second > Q.peek().first) {
+                        Q.offer(P1);
+                        P1 = Q.poll();
+                    }
+                    Pair P2 = Q.poll();
+                    //P1 and P2 are two adjacent intervals
+                    Bar[] tmp = new Bar[P2.second - P1.first + 1];
+                    for (int i = P1.first, j = P2.first, k = 0; i <= P1.second || j <= P2.second; ) {
+                        if (i > P1.second)
+                            tmp[k++] = rect[j++];
+                        else if (j > P2.second)
+                            tmp[k++] = rect[i++];
+                        else {
+                            rect[i].setComparing(true);
+                            rect[j].setComparing(true);
+                            repaint();
+                            Thread.sleep(DELAY);
+                            rect[i].setComparing(false);
+                            rect[j].setComparing(false);
+                            repaint();
+                            Thread.sleep(DELAY);
+                            if (rect[i].compareTo(rect[j]) <= 0)
+                                tmp[k++] = rect[i++];
+                            else
+                                tmp[k++] = rect[j++];
+                        }
+                    }
+                    //Copy the array over
+                    for (int i = P1.first, j = 0; j < tmp.length; )
+                        rect[i++] = tmp[j++];
+                    repaint();
+                    Q.offer(new Pair(P1.first, P2.second));
+                }
             }
         }
     }
@@ -272,11 +267,13 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         }
 
         public void show(Graphics G,int x,int y,int width,int height) {
-            if(comparing)
-                G.setColor(Color.RED);
-            else
-                G.setColor(Color.GRAY);
-            G.fillRect(x,y,width,height);
+            synchronized(rect) {
+                if (comparing)
+                    G.setColor(Color.RED);
+                else
+                    G.setColor(Color.GRAY);
+                G.fillRect(x, y, width, height);
+            }
         }
 
         public void setComparing(boolean b) {
@@ -294,7 +291,6 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         }
 
         public void paintComponent(Graphics G) {
-            //setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
             double d=0.0;
             for(int i=0,j=0;i<rect.length;i++) {
                 int h=(rect[i].val+1)*getHeight()/barCnt,w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
