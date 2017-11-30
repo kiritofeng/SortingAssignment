@@ -66,11 +66,9 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
-                D.setHeight(getHeight()-100);
-                D.setWidth(getWidth());
                 new Thread() {
                     public void run() {
-                        setBarSize();
+                        D.setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
                     }
                 }.start();
             }
@@ -81,18 +79,6 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         rect=new Bar[barCnt];
         for(int i=0;i<barCnt;i++)
             rect[i]=new Bar(i);
-        setBarSize();
-    }
-
-    private void setBarSize() {
-        //The problem is that you can't render fractions of a pixel
-        //The solution is to not render some bars
-        double d=0.0;
-        for(int i=0;i<barCnt;i++) {
-            rect[i].setHeight((rect[i].val+1)*(getHeight()-100)/barCnt);
-            rect[i].setWidth((int)(Math.round((rect[i].val+1.0)*getWidth()/barCnt)-Math.round(d)));
-            d+=1.0*getWidth()/barCnt;
-        }
         repaint();
     }
 
@@ -275,23 +261,15 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
     }
 
     private class Bar implements Comparable<Bar> {
-        protected int height,width,val; //height and with of rectangle
+        protected final int val; //height and with of rectangle
         private boolean comparing;
 
         public Bar(int v) {
-            height=width=0;
             comparing=false;
             val=v;
         }
 
-        public Bar(int h, int w, int v) {
-            comparing=false;
-            height=h;
-            width=w;
-            val=v; //Tiebreak if there are too many bars
-        }
-
-        public void show(Graphics G,int x,int y) {
+        public void show(Graphics G,int x,int y,int width,int height) {
             if(comparing)
                 G.setColor(Color.RED);
             else
@@ -306,39 +284,22 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         public int compareTo(Bar b) {
             return val-b.val;
         }
-
-        public void setHeight(int height) {
-            this.height=height;
-        }
-
-        public void setWidth(int width) {
-            this.width=width;
-        }
     }
 
     private class DrawArea extends JPanel {
-        private int width,height;
         public DrawArea(int w,int h) {
-            width=w;
-            height=h;
-            setPreferredSize(new Dimension(width,height));
+            setPreferredSize(new Dimension(w,h));
         }
 
         public void paintComponent(Graphics G) {
+            setPreferredSize(new Dimension(getWidth(),9*getHeight()/10));
+            double d=0.0;
             for(int i=0,j=0;i<rect.length;i++) {
-                rect[i].show(G,j,height-rect[i].height);
-                j+=rect[i].width;
+                int h=(rect[i].val+1)*getHeight()/barCnt,w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
+                d+=1.0*getWidth()/barCnt;
+                rect[i].show(G,j,getHeight()-h,w,h);
+                j+=w;
             }
-        }
-
-        public void setHeight(int height) {
-            this.height = height;
-            setSize(width,height);
-        }
-
-        public void setWidth(int width) {
-            this.width = width;
-            setSize(width,height);
         }
     }
 }
