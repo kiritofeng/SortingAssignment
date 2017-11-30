@@ -27,7 +27,7 @@ public class SortingAssignment extends JFrame implements Runnable { //Hack for g
         setPreferredSize(new Dimension(800,500));
         D=new DrawArea(getWidth(),getHeight()-100);
         // Set up controls
-        cntrls = new JComponent[4];
+        cntrls = new JComponent[5];
         BtnListener btnl = new BtnListener();
         cntrls[0] = new JButton("Shuffle");
         ((JButton)cntrls[0]).addActionListener(btnl);
@@ -391,3 +391,4 @@ class Pair {
         second=s;
     }
 }
+
