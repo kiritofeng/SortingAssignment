@@ -367,7 +367,8 @@ public class SortingAssignment extends JFrame {
                 // Generate the height and width
                 // The width calculation means that not all bars are the same width
                 // This allows for the bars appear across the full width, regardless of the width of the window
-                int h=(int)Math.round((rect[i].val+1.0)*getHeight()/barCnt),w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
+                int h=(int)Math.round((rect[i].val+1.0)*getHeight()/barCnt),
+                    w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
                 rect[i].show(G,j,getHeight()-h,w,h);
                 // d is the true width
                 d+=1.0*getWidth()/barCnt;
