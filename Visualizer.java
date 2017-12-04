@@ -3,7 +3,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
 
-public class SortingAssignment extends JFrame {
+public class Visualizer extends JFrame {
 
     private Bar[]rect;
     private DrawArea D;
@@ -13,10 +13,10 @@ public class SortingAssignment extends JFrame {
 
     public static void main(String[] args) {
         System.setProperty("sun.java2d.opengl", "true"); // Make the graphics appear smoothly on linux
-        new SortingAssignment().setVisible(true);
+        new Visualizer().setVisible(true);
     }
 
-    public SortingAssignment() {
+    public Visualizer() {
         barCnt=20; // there are initially only 20 bars
         initBars();
         setMinimumSize(new Dimension(800,500));
@@ -40,7 +40,7 @@ public class SortingAssignment extends JFrame {
                 new Thread() {
                     public void run() {
                         barCnt = (Integer)((JComboBox<Integer>)cntrls[4]).getSelectedItem();
-                        DELAY = 2000/barCnt;
+                        DELAY = Math.max(2000/barCnt,1);
                         initBars();
                     }
                 }.start();
@@ -136,11 +136,13 @@ public class SortingAssignment extends JFrame {
          * Auxiliary Space Complexity: O(1)
          */
         private void shuffle() {
-            for(int i=1;i<rect.length;i++) {
-                int ind=(int)(Math.random()*i); //Get index
-                Bar tmp=rect[i]; //Swap
-                rect[i]=rect[ind];
-                rect[ind]=tmp;
+            synchronized (rect) {
+                for(int i=1;i<rect.length;i++) {
+                    int ind=(int)(Math.random()*i); //Get index
+                    Bar tmp=rect[i]; //Swap
+                    rect[i]=rect[ind];
+                    rect[ind]=tmp;
+                }
             }
             repaint();
         }
@@ -369,7 +371,8 @@ public class SortingAssignment extends JFrame {
                 // This allows for the bars appear across the full width, regardless of the width of the window
                 int h=(int)Math.round((rect[i].val+1.0)*getHeight()/barCnt),
                     w=(int)(Math.round((i+1.0)*getWidth()/barCnt)-Math.round(d));
-                rect[i].show(G,j,getHeight()-h,w,h);
+                if(w>0) // Try to optimize drawing speeds
+                    rect[i].show(G,j,getHeight()-h,w,h);
                 // d is the true width
                 d+=1.0*getWidth()/barCnt;
                 // j is the width that will be displayed on screen
