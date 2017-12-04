@@ -11,6 +11,7 @@ public class Counter extends JDialog {
         sz=100;
         setMinimumSize(new Dimension(400,80));
         setPreferredSize(new Dimension(400,80));
+        setMaximumSize(new Dimension(400,80));
         swaps = new JLabel("Swaps: --");
         comps = new JLabel("Comparisions: --");
         JButton btn = new JButton("Sort!");
