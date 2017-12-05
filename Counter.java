@@ -9,14 +9,16 @@ public class Counter extends JDialog {
     private int swapCnt,compCnt,sz;
     public Counter() {
         sz=100;
-        setMinimumSize(new Dimension(400,80));
-        setPreferredSize(new Dimension(400,80));
-        setMaximumSize(new Dimension(400,80));
+        setMinimumSize(new Dimension(400,100));
+        setPreferredSize(new Dimension(400,100));
+        setMaximumSize(new Dimension(400,100));
         swaps = new JLabel("Swaps: --");
         comps = new JLabel("Comparisions: --");
-        JButton btn = new JButton("Sort!");
+        JButton btn1 = new JButton("Timsort!");
+        JButton btn2 = new JButton("Quicksort!");
         JComboBox<Integer>ele = new JComboBox<>(new Integer[]{100,100000,1000000});
-        btn.addActionListener(new btnListener());
+        btn1.addActionListener(new btnListener());
+        btn2.addActionListener(new btnListener());
         ele.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -32,7 +34,8 @@ public class Counter extends JDialog {
         lbls.add(comps);
         JPanel cntrls = new JPanel();
         new BoxLayout(cntrls,BoxLayout.PAGE_AXIS);
-        cntrls.add(btn);
+        cntrls.add(btn1);
+        cntrls.add(btn2);
         cntrls.add(ele);
         content.setLayout(new BorderLayout());
         content.add(lbls,"North");
@@ -51,10 +54,17 @@ public class Counter extends JDialog {
     private class btnListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             switch(e.getActionCommand()) {
-                case "Sort!":
+                case "Timsort!":
                     swapCnt = compCnt = 0;
                     timsort();
                     swaps.setText("Swaps: "+swapCnt);
+                    comps.setText("Comparisions: "+compCnt);
+                    repaint();
+                    break;
+                case "Quicksort!":
+                	swapCnt = compCnt = 0;
+                	quicksort();
+                	swaps.setText("Swaps: "+swapCnt);
                     comps.setText("Comparisions: "+compCnt);
                     repaint();
                     break;
@@ -83,6 +93,49 @@ public class Counter extends JDialog {
         public Pair(int f, int s) {
             first=f;
             second=s;
+        }
+    }
+    /**
+     * An iterative implementation of quicksort
+     * Uses an explicit stack to avoid recursion
+     * This is necessary because of the use of synchronized blocks
+     * Best case time complexity: O(N log N)
+     * Worst case time complexity: O(N^2)
+     * Auxiliary Space Complexity: O(1)
+     */
+    private void quicksort() {
+    	int[]arr = new int[sz];
+        for(int i=0;i<arr.length;i++)
+            arr[i]=i;
+        shuffle(arr);
+        Stack<Pair> S = new Stack(); // Use stacks to simulate recursion
+        S.push(new Pair(0,arr.length-1));
+        while(!S.empty()) {
+            int lft=S.peek().first,rht=S.peek().second;
+            S.pop();
+            if (lft < rht) {
+                int prt = lft - 1; // Get partition
+                int pivot = 0; // Declare it outside synchronized blocks
+                pivot = arr[rht]; //Get pivot value
+                for (int i = lft; i < rht; i++) {
+                	compCnt++;
+                    if (arr[i] <= pivot) {
+                        // Swap
+                    	swapCnt++;
+                        int tmp = arr[++prt];
+                        arr[prt] = arr[i];
+                        arr[i] = tmp;
+                    }
+                }
+                // Move partition into place
+                swapCnt++;
+                int tmp = arr[++prt];
+                arr[prt] = arr[rht];
+                arr[rht] = tmp;
+                // Simulate recursion with stack
+                S.push(new Pair(prt + 1, rht));
+                S.push(new Pair(lft, prt - 1));
+            }
         }
     }
 
