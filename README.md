@@ -6,7 +6,7 @@ Goal: To compare quicksort and timsort, written in Java
 
 A commonly used sort, which has average time complexity O(N log N), and worst case O(N^2).
 The implementation used here picks the right-most element as the pivot, and then calls quicksort on the two partitions.
-This is implemented with the use of a stack to simulate recursion, as `syncronized` won't work with recursive calls.
+This is implemented with the use of a stack to simulate recursion, as `synchronized` won't work with recursive calls.
 
 ## Timsort
 
