@@ -12,7 +12,7 @@ public class Visualizer extends JFrame {
     private JComponent cntrls[];
 
     public static void main(String[] args) {
-        System.setProperty("sun.java2d.opengl", "true"); // Make the graphics appear smoothly on linux
+        System.setProperty("sun.java2d.opengl", "True"); // Make the graphics appear smoothly on linux
         new Visualizer().setVisible(true);
     }
 
